@@ -1,23 +1,20 @@
 const { Sequelize, sequelize } = require('./index');
 
-const Test = sequelize.define('tests', {
-    de_thi_id: {
+const Tested = sequelize.define('testeds', {
+    id_bai_thi: {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true,
     },
-    ten_de_thi: {
+    nguoi_dung_id: {
         type: Sequelize.STRING,
         allowNull: false,
     },
-    thoi_gian_lam_bai: {
-        type: Sequelize.STRING,
-        allowNull: true,
-    },
-    id_malop: {
+    id_de_thi: {
         type: Sequelize.STRING,
         allowNull: false,
-    }
+    },
 });
 
-module.exports = Test;
+
+module.exports = Tested;

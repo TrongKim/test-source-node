@@ -2,9 +2,38 @@ const Test = require('../models/tests');
 const Question = require('../models/questions');
 const Answer = require('../models/answers');
 const Utils = require('../utils/utils');
+const ClassUser = require('../models/class_users');
 
 class TestFunction {
-    static async getTests(req, res) {
+    static async getTestByAdminId(req, res) {
+        try {
+            const user = req.user;
+            const classes_user = await ClassUser.findAll({
+                where: {
+                    nguoi_dung_id: user.userId
+                },
+                attribute: ['ma_lop']
+            });
+            const tests = await Test.findAll({
+                where: {
+                    id_malop: classes_user.map(data => data = data.ma_lop)
+                }
+            });
+            return res.status(200).send({
+                data: tests,
+                status: 200,
+                message: 'get test by admin id success'
+            });
+        } catch (err) {
+            console.log('err get test by admin id', err);
+            return res.status(200).send({
+                data: null,
+                message: 'get test by admin id fail',
+                status: 401
+            });
+        }
+    }
+    static async getTestsByClassId(req, res) {
         try {
             const classId = req.body.classId;
             const tests = await Test.findAll({
@@ -23,6 +52,64 @@ class TestFunction {
                 status: 401,
                 data: null,
                 message: 'get tests fail'
+            });
+        }
+    }
+
+    static async getDetailTest(req, res) {
+        try {
+            const testId = req.body.testId;
+            const test = await Test.findOne({
+                where: {
+                    de_thi_id: testId
+                }
+            });
+
+            let questions = await Question.findAll({
+                where: {
+                    id_dethi: testId
+                }
+            });
+
+            if (!questions) {
+                return res.status(200).send({
+                    data: null,
+                    message: 'get detail test fail',
+                    status: 401
+                });
+            }
+            let questions_answer = [];
+            for(let question of questions) {
+                const answers = await Answer.findAll({
+                    where: {
+                        id_cauhoi: question.cau_hoi_id
+                    }
+                });
+                questions_answer.push({
+                    cau_hoi_id: question.cau_hoi_id,
+                    noi_dung_cau_hoi: question.noi_dung_cau_hoi,
+                    id_dethi: question.id_dethi,
+                    dap_an: answers
+                });
+            }
+
+            return res.status(200).send({
+                data: {
+                    de_thi_id: test.de_thi_id,
+                    ten_de_thi: test.ten_de_thi,
+                    thoi_gian_lam_bai: test.thoi_gian_lam_bai,
+                    id_malop: test.id_malop,
+                    questions: questions_answer
+                },
+                status: 200,
+                message: 'success'
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(200).send({
+                data: null,
+                message: 'get detail test fail',
+                status: 401
             });
         }
     }
@@ -65,8 +152,8 @@ class TestFunction {
                     const answer_created = await Answer.create({
                         id_dapan: Utils.createID('answer'),
                         id_cauhoi: questionId,
-                        is_true: answer.dap_an.isTrue,
-                        noi_dung: answer.dap_an.content
+                        is_true: answer.isTrue,
+                        noi_dung: answer.content
                     });
     
                     if (!answer_created) {
@@ -85,6 +172,7 @@ class TestFunction {
                 message: 'create test success'
             });
         } catch (err) {
+            console.log(err);
             return res.status(200).send({
                 status: 401,
                 data: null,

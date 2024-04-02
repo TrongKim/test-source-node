@@ -1,9 +1,8 @@
 const { Sequelize, sequelize } = require('./index');
-
 const User = sequelize.define('user', {
     nguoi_dung_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
+        type: Sequelize.STRING,
+        allowNull: false,
         primaryKey: true,
     },
     ten_dang_nhap: {
@@ -19,6 +18,5 @@ const User = sequelize.define('user', {
         allowNull: false,
     },
 });
-
 
 module.exports = User;

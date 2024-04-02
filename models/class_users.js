@@ -9,11 +9,11 @@ const ClassUser = sequelize.define('class_users', {
         primaryKey: true,
     },
     nguoi_dung_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
     },
     ma_lop: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
     },
     permission: {
@@ -21,5 +21,8 @@ const ClassUser = sequelize.define('class_users', {
         allowNull: false
     }
 });
+
+User.hasMany(ClassUser, { foreignKey: 'nguoi_dung_id' });
+Class.hasMany(ClassUser, { foreignKey: 'ma_lop' });
 
 module.exports = ClassUser;

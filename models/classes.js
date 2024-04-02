@@ -1,5 +1,4 @@
 const { Sequelize, sequelize } = require('./index');
-const ClassUser = require('./class_users');
 
 const Class = sequelize.define('classes', {
     ma_lop: {
@@ -14,6 +13,10 @@ const Class = sequelize.define('classes', {
     description: {
         type: Sequelize.STRING,
         allowNull: true,
+    },
+    ma_vao_lop: {
+        type: Sequelize.STRING,
+        allowNull: false
     }
 });
 

@@ -21,12 +21,13 @@ class AuthFunction {
                 });
             }
 
-            const user_create = await User.create({
-                nguoi_dung_id: null,
+            const user_data = {
+                nguoi_dung_id: Utils.createID('user_id'),
                 ten_dang_nhap: req.body.username,
                 mat_khau: password_bcrypt,
                 email: req.body.email,
-            });
+            };
+            const user_create = await User.create(user_data);
 
             if (!user_create) {
                 return res.status(200).send({
@@ -36,25 +37,19 @@ class AuthFunction {
                 });
             }
 
-            const full_user_data = await User.findOne({
-                where: {
-                    email: req.body.email
-                }
+            return res.status(200).send({
+                status: 200,
+                data: {
+                    token: Utils.createJWT(user_data),
+                    refreshToken: Utils.createRefreshToken(user_data),
+                    nguoi_dung_id: user_data.nguoi_dung_id,
+                    ten_dang_nhap: user_data.ten_dang_nhap,
+                    email: user_data.email
+                },
+                message: 'success'
             });
-
-            if (full_user_data) {
-                return res.status(200).send({
-                    status: 200,
-                    data: {
-                        token: Utils.createJWT(full_user_data),
-                        nguoi_dung_id: full_user_data.nguoi_dung_id,
-                        ten_dang_nhap: full_user_data.ten_dang_nhap,
-                        email: full_user_data.email
-                    },
-                    message: 'success'
-                });
-            }
         } catch (err) {
+            console.log(err);
             return res.status(200).send({
                 status: 401,
                 data: null,
@@ -82,6 +77,7 @@ class AuthFunction {
                     message: 'success',
                     data: {
                         token: Utils.createJWT(user),
+                        refreshToken: Utils.createRefreshToken(user),
                         nguoi_dung_id: user.nguoi_dung_id,
                         ten_dang_nhap: user.ten_dang_nhap,
                         email: user.email
@@ -105,9 +101,18 @@ class AuthFunction {
     }
 
     static async getAllUser(req, res) {
-        Admin.findOne({
+        const token = req.headers.authorization;
+        const decoded_data = await Utils.getDecodeTokenData(token);
+        if (decoded_data === null) {
+            return res.status(200).send({
+                status: 401,
+                data: null,
+                message: 'fail token not valid'
+            });
+        }
+        User.findOne({
             where: {
-                id: req.body.admin_id
+                nguoi_dung_id: decoded_data.userId
             }
         })
             .then(admin => {
@@ -129,6 +134,35 @@ class AuthFunction {
                     message: 'fail'
                 });
             });
+    }
+
+    static async refreshToken(req, res) {
+        try {
+            const refreshToken = req.body.refreshToken;
+            if (!refreshToken) {
+                return res.status(200).send({
+                    message: 'Refresh token không được cung cấp.',
+                    data: null,
+                    status: 401
+                });
+            }
+            const user_data = Utils.getDecodeRefreshTokenData();
+            const accessToken = Utils.createJWT(user_data) // Tạo lại access token mới
+            return res.status(200).send({
+                message: 'create new token success',
+                data: {
+                    accessToken
+                },
+                status: 200
+            });
+        } catch (err) {
+            console.log('err refresh token route', err);
+            return res.status(200).send({
+                message: 'create new token fail',
+                data: null,
+                status: 401
+            });
+        }
     }
 }
 

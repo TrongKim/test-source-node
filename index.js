@@ -2,25 +2,21 @@ const express = require('express');
 const { sequelize } = require('./models/index');
 const app = express();
 var cors = require('cors');
+const router = require('./routes/index');
+
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3567;
 
 app.use(express.json());
 
-const userRoute = require('./routes/users');
-const classRoute = require('./routes/classes');
-const testRoute = require('./routes/tests');
-
-app.use('/users', userRoute);
-app.use('/classes', classRoute);
-app.use('/tests', testRoute);
+app.use("/api", router); //http://localhost:3567/api
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-sequelize.sync()
+sequelize.sync({ alter: true })
   .then(() => {
     console.log('Cơ sở dữ liệu đã được đồng bộ hóa');
   })
